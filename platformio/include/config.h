@@ -44,8 +44,9 @@
 
 // INDOOR ENVIRONMENT SENSOR
 // Uncomment the macro that identifies your sensor.
-#define SENSOR_BME280
+//#define SENSOR_BME280
 // #define SENSOR_BME680
+#define SENSOR_BMP280
 
 // If you encounter issues with the BME280 sensor showing no data, uncomment and
 // add a small delay before reading it's value. 300ms seems to work for most people
@@ -77,7 +78,7 @@
 //   Dutch (Belgium)                 nl_BE
 //   Portuguese (Brazil)             pt_BR
 //   Spanish (Spain)                 es_ES
-#define LOCALE en_US
+#define LOCALE it_IT
 
 // UNITS
 // Define exactly one macro for each measurement type below.
@@ -86,16 +87,16 @@
 //   Metric   : Celsius
 //   Imperial : Fahrenheit
 // #define UNITS_TEMP_KELVIN
-// #define UNITS_TEMP_CELSIUS
-#define UNITS_TEMP_FAHRENHEIT
+#define UNITS_TEMP_CELSIUS
+//#define UNITS_TEMP_FAHRENHEIT
 
 // UNITS - WIND SPEED
 //   Metric   : Kilometers per Hour
 //   Imperial : Miles per Hour
 // #define UNITS_SPEED_METERSPERSECOND
 // #define UNITS_SPEED_FEETPERSECOND
-// #define UNITS_SPEED_KILOMETERSPERHOUR
-#define UNITS_SPEED_MILESPERHOUR
+#define UNITS_SPEED_KILOMETERSPERHOUR
+// #define UNITS_SPEED_MILESPERHOUR
 // #define UNITS_SPEED_KNOTS
 // #define UNITS_SPEED_BEAUFORT
 
@@ -104,8 +105,8 @@
 //   Imperial : Inches of Mercury
 // #define UNITS_PRES_HECTOPASCALS
 // #define UNITS_PRES_PASCALS
-// #define UNITS_PRES_MILLIMETERSOFMERCURY
-#define UNITS_PRES_INCHESOFMERCURY
+#define UNITS_PRES_MILLIMETERSOFMERCURY
+//#define UNITS_PRES_INCHESOFMERCURY
 // #define UNITS_PRES_MILLIBARS
 // #define UNITS_PRES_ATMOSPHERES
 // #define UNITS_PRES_GRAMSPERSQUARECENTIMETER
@@ -114,16 +115,16 @@
 // UNITS - VISIBILITY DISTANCE
 //   Metric   : Kilometers
 //   Imperial : Miles
-// #define UNITS_DIST_KILOMETERS
-#define UNITS_DIST_MILES
+#define UNITS_DIST_KILOMETERS
+//#define UNITS_DIST_MILES
 
 // UNITS - PRECIPITATION (HOURLY)
 // Measure of precipitation.
 // This can either be Probability of Precipitation (PoP) or hourly volume.
 //   Metric   : Millimeters
 //   Imperial : Inches
-#define UNITS_HOURLY_PRECIP_POP
-// #define UNITS_HOURLY_PRECIP_MILLIMETERS
+//#define UNITS_HOURLY_PRECIP_POP
+#define UNITS_HOURLY_PRECIP_MILLIMETERS
 // #define UNITS_HOURLY_PRECIP_CENTIMETERS
 // #define UNITS_HOURLY_PRECIP_INCHES
 
@@ -133,9 +134,9 @@
 //   Metric   : Millimeters
 //   Imperial : Inches
 // #define UNITS_DAILY_PRECIP_POP
-// #define UNITS_DAILY_PRECIP_MILLIMETERS
+#define UNITS_DAILY_PRECIP_MILLIMETERS
 // #define UNITS_DAILY_PRECIP_CENTIMETERS
-#define UNITS_DAILY_PRECIP_INCHES
+//#define UNITS_DAILY_PRECIP_INCHES
 
 // Hypertext Transfer Protocol (HTTP)
 // HTTP
@@ -374,7 +375,8 @@ extern const uint32_t MIN_BATTERY_VOLTAGE;
   #error Invalid configuration. Exactly one driver board must be selected.
 #endif
 #if !(  defined(SENSOR_BME280) \
-      ^ defined(SENSOR_BME680))
+      ^ defined(SENSOR_BME680) \
+      ^ defined(SENSOR_BMP280))
   #error Invalid configuration. Exactly one sensor must be selected.
 #endif
 #if !(defined(LOCALE))

@@ -37,6 +37,9 @@
 #if defined(SENSOR_BME680)
   #include <Adafruit_BME680.h>
 #endif
+#if defined(SENSOR_BMP280)
+  #include <Adafruit_BMP280.h>
+#endif
 #if defined(USE_HTTPS_WITH_CERT_VERIF) || defined(USE_HTTPS_WITH_CERT_VERIF)
   #include <WiFiClientSecure.h>
 #endif
@@ -298,13 +301,14 @@ void setup()
   TwoWire I2C_bme = TwoWire(0);
   I2C_bme.begin(PIN_BME_SDA, PIN_BME_SCL, 100000); // 100kHz
   float inTemp     = NAN;
-  float inHumidity = NAN;
+  float inHumidity = 0.0;
 #if defined(SENSOR_BME280)
   Serial.print(String(TXT_READING_FROM) + " BME280... ");
   Adafruit_BME280 bme;
 
   if(bme.begin(BME_ADDRESS, &I2C_bme))
   {
+    inHumidity = bme.readHumidity();    // %
 #endif
 #if defined(SENSOR_BME680)
   Serial.print(String(TXT_READING_FROM) + " BME680... ");
@@ -312,9 +316,17 @@ void setup()
 
   if(bme.begin(BME_ADDRESS))
   {
+    inHumidity = bme.readHumidity();    // %
+#endif
+#if defined(SENSOR_BMP280)
+  Adafruit_BMP280 bme(&I2C_bme);
+  
+  if(bme.begin(BME_ADDRESS))
+  {
+    inHumidity = 0.0; 
 #endif
     inTemp     = bme.readTemperature(); // Celsius
-    inHumidity = bme.readHumidity();    // %
+    //inHumidity = bme.readHumidity();    // %
 
     // check if BME readings are valid
     // note: readings are checked again before drawing to screen. If a reading
