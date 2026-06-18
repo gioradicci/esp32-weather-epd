@@ -18,9 +18,9 @@
 #include <cmath>
 #include <vector>
 #include <Arduino.h>
+//  #include <esp_private/adc_share_hw_ctrl.h>
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
-
 #include <aqi.h>
 
 #include "_locale.h"

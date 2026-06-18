@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+Debugging 
+
+*/
+
 #include "config.h"
 #include <Arduino.h>
 #include <Adafruit_Sensor.h>
@@ -114,16 +119,24 @@ void beginDeepSleep(unsigned long startTime, tm *timeInfo)
   sleepDuration += 3ULL;
   sleepDuration *= 1.0015f;
 
+  // if DEBUG_LEVEL >= 1 don't sleep for ESP-PROG Debugging  
 #if DEBUG_LEVEL >= 1
+  Serial.print("DON'T WAKEUP!");
   printHeapUsage();
-#endif
-
+#else
   esp_sleep_enable_timer_wakeup(sleepDuration * 1000000ULL);
+#endif
   Serial.print(TXT_AWAKE_FOR);
   Serial.println(" "  + String((millis() - startTime) / 1000.0, 3) + "s");
   Serial.print(TXT_ENTERING_DEEP_SLEEP_FOR);
   Serial.println(" " + String(sleepDuration) + "s");
+
+#if DEBUG_LEVEL >= 1
+  Serial.print("DON'T SLEEP!");
+#else
   esp_deep_sleep_start();
+#endif
+
 } // end beginDeepSleep
 
 /* Program entry point.
@@ -132,6 +145,8 @@ void setup()
 {
   unsigned long startTime = millis();
   Serial.begin(115200);
+
+  loadDynamicConfig();
 
 #if DEBUG_LEVEL >= 1
   printHeapUsage();

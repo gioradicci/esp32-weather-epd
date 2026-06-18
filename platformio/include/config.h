@@ -311,15 +311,22 @@
 // NON-VOLATILE STORAGE (NVS) NAMESPACE
 #define NVS_NAMESPACE "weather_epd"
 
+// WIFI MANAGER CONFIGURATION
+#define USE_WIFI_MANAGER
+#define CONFIG_BUTTON_HOLD_TIME_MS 3000
+#define CONFIG_PORTAL_TIMEOUT_S 90
+#define INITIAL_CONFIG_PORTAL_TIMEOUT_S 90
+
 // DEBUG
 //   If defined, enables increase verbosity over the serial port.
 //   level 0: basic status information, assists troubleshooting (default)
 //   level 1: increased verbosity for debugging
 //   level 2: print api responses to serial monitor
-#define DEBUG_LEVEL 0
+#define DEBUG_LEVEL 0 // GIO: iniziale 0 
 
 // Set the below constants in "config.cpp"
 extern const uint8_t PIN_BAT_ADC;
+extern const uint8_t PIN_CONFIG_BUTTON;
 extern const uint8_t PIN_EPD_BUSY;
 extern const uint8_t PIN_EPD_CS;
 extern const uint8_t PIN_EPD_RST;
@@ -339,9 +346,13 @@ extern const unsigned HTTP_CLIENT_TCP_TIMEOUT;
 extern const String OWM_APIKEY;
 extern const String OWM_ENDPOINT;
 extern const String OWM_ONECALL_VERSION;
-extern const String LAT;
-extern const String LON;
-extern const String CITY_STRING;
+extern String LAT;
+extern String LON;
+extern String CITY_STRING;
+
+// Dynamic Configuration Persistence Functions
+void loadDynamicConfig();
+void saveDynamicConfig(const String &lat, const String &lon, const String &city);
 extern const char *TIMEZONE;
 extern const char *TIME_FORMAT;
 extern const char *HOUR_FORMAT;

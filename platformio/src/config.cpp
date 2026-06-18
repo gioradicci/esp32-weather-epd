@@ -16,6 +16,7 @@
  */
 
 #include <Arduino.h>
+#include <Preferences.h>
 #include "config.h"
 
 // PINS
@@ -28,6 +29,8 @@
 //
 // ADC pin used to measure battery voltage
 const uint8_t PIN_BAT_ADC  = A2; // A0 for micro-usb firebeetle
+// Pin for Configuration Button (BOOT button on FireBeetle 2 ESP32-E is IO27/D4)
+const uint8_t PIN_CONFIG_BUTTON = 27;
 // Pins for E-Paper Driver Board
 const uint8_t PIN_EPD_BUSY = 25;///original:14; // 5 for micro-usb firebeetle
 const uint8_t PIN_EPD_CS   = 26;///original:13;
@@ -44,8 +47,8 @@ const uint8_t PIN_BME_PWR =  4;   // Irrelevant if directly connected to 3.3V
 const uint8_t BME_ADDRESS = 0x76; // 0x76 if SDO -> GND; 0x77 if SDO -> VCC
 
 // WIFI
-const char *WIFI_SSID     = "ssid";
-const char *WIFI_PASSWORD = "password";
+const char *WIFI_SSID     = "TIM-65363435"; // EMPTY IF you Want a reset
+const char *WIFI_PASSWORD = "NRRGyPh2T9x9cFxfEdNHRPTz"; // EMPTY IF you Want a reset
 const unsigned long WIFI_TIMEOUT = 10000; // ms, WiFi connection timeout.
 
 // HTTP
@@ -79,10 +82,10 @@ const String OWM_ONECALL_VERSION = "3.0";
 // LOCATION
 // Set your latitude and longitude.
 // (used to get weather data as part of API requests to OpenWeatherMap)
-const String LAT = "41.93133";
-const String LON = "12.52373";
+String LAT = "41.93133";
+String LON = "12.52373";
 // City name that will be shown in the top-right corner of the display.
-const String CITY_STRING = "Roma";
+String CITY_STRING = "Roma";
 
 // TIME
 // For list of time zones see
@@ -163,4 +166,33 @@ const uint32_t MIN_BATTERY_VOLTAGE = 3000; // (millivolts)
 // FONTS
 // ALERTS
 // BATTERY MONITORING
+
+void loadDynamicConfig()
+{
+  Preferences prefs;
+  prefs.begin(NVS_NAMESPACE, true); // read-only
+  if (prefs.isKey("lat"))
+  {
+    LAT = prefs.getString("lat", LAT);
+  }
+  if (prefs.isKey("lon"))
+  {
+    LON = prefs.getString("lon", LON);
+  }
+  if (prefs.isKey("city"))
+  {
+    CITY_STRING = prefs.getString("city", CITY_STRING);
+  }
+  prefs.end();
+}
+
+void saveDynamicConfig(const String &lat, const String &lon, const String &city)
+{
+  Preferences prefs;
+  prefs.begin(NVS_NAMESPACE, false); // read-write
+  prefs.putString("lat", lat);
+  prefs.putString("lon", lon);
+  prefs.putString("city", city);
+  prefs.end();
+}
 

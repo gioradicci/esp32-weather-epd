@@ -37,6 +37,9 @@
 #include "aqi.h"
 #include "client_utils.h"
 #include "config.h"
+#ifdef USE_WIFI_MANAGER
+  #include <WiFiManager.h>
+#endif
 #include "display_utils.h"
 #include "renderer.h"
 #ifndef USE_HTTP
@@ -57,6 +60,115 @@
  */
 wl_status_t startWiFi(int &wifiRSSI)
 {
+  Serial.println("startWiFi() chiamato");
+#ifdef USE_WIFI_MANAGER
+  //Serial.println("[debug] USE_WIFI_MANAGER è definita");
+  bool forceConfigPortal = false;
+  pinMode(PIN_CONFIG_BUTTON, INPUT_PULLUP);
+  delay(50); // debounce
+  int buttonVal = digitalRead(PIN_CONFIG_BUTTON);
+  Serial.printf("Stato pulsante (pin %d): %d (LOW = premuto)\n", PIN_CONFIG_BUTTON, buttonVal);
+  if (buttonVal == LOW)
+  {
+    unsigned long pressStart = millis();
+    forceConfigPortal = true;
+    Serial.println("Config button pressed. Checking hold time...");
+    while (millis() - pressStart < CONFIG_BUTTON_HOLD_TIME_MS)
+    {
+      if (digitalRead(PIN_CONFIG_BUTTON) == HIGH)
+      {
+        forceConfigPortal = false;
+        Serial.println("Config button released early.");
+        break;
+      }
+      delay(10);
+    }
+    if (forceConfigPortal)
+    {
+      Serial.println("Config button held for 3 seconds. Forcing WiFi configuration portal!");
+    }
+  }
+
+  bool hasSaved = (WiFi.SSID() != "");
+  bool hasHardcoded = (WIFI_SSID != nullptr && strlen(WIFI_SSID) > 0 && strcmp(WIFI_SSID, "YOUR_SSID") != 0 && strcmp(WIFI_SSID, "") != 0);
+  bool hasCredentials = hasSaved || hasHardcoded;
+
+  if (!hasCredentials)
+  {
+    forceConfigPortal = true;
+    Serial.println("No WiFi credentials configured. Forcing configuration portal!");
+  }
+
+  if (forceConfigPortal)
+  {
+    WiFiManager wm;
+    wm.setRemoveDuplicateAPs(true);
+    WiFiManagerParameter custom_city("city", "City / Città", CITY_STRING.c_str(), 40);
+    WiFiManagerParameter custom_lat("lat", "Latitude / Latitudine", LAT.c_str(), 16);
+    WiFiManagerParameter custom_lon("lon", "Longitude / Longitudine", LON.c_str(), 16);
+
+    wm.addParameter(&custom_city);
+    wm.addParameter(&custom_lat);
+    wm.addParameter(&custom_lon);
+
+    if (hasCredentials)
+    {
+      wm.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT_S);
+      Serial.printf("Config portal active for %d seconds...\n", CONFIG_PORTAL_TIMEOUT_S);
+    }
+    else
+    {
+      wm.setConfigPortalTimeout(INITIAL_CONFIG_PORTAL_TIMEOUT_S);
+      Serial.printf("Config portal active for %d seconds...\n", INITIAL_CONFIG_PORTAL_TIMEOUT_S);
+    }
+
+    if (wm.startConfigPortal("ESP32-Weather-AP"))
+    {
+      Serial.println("WiFi configuration successful!");
+      CITY_STRING = custom_city.getValue();
+      LAT = custom_lat.getValue();
+      LON = custom_lon.getValue();
+
+      saveDynamicConfig(LAT, LON, CITY_STRING);
+      Serial.printf("Saved new configuration: City='%s', Lat='%s', Lon='%s'\n", CITY_STRING.c_str(), LAT.c_str(), LON.c_str());
+    }
+    else
+    {
+      Serial.println("Config portal closed or timed out.");
+    }
+  }
+
+  wl_status_t connection_status = WiFi.status();
+  if (connection_status != WL_CONNECTED)
+  {
+    WiFi.mode(WIFI_STA);
+    if (hasSaved)
+    {
+      Serial.printf("%s '%s'\n", TXT_CONNECTING_TO, WiFi.SSID().c_str());
+      WiFi.begin();
+    }
+    else if (hasHardcoded)
+    {
+      Serial.printf("%s '%s'\n", TXT_CONNECTING_TO, WIFI_SSID);
+      WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    }
+    else
+    {
+      return WL_CONNECT_FAILED;
+    }
+
+    unsigned long timeout = millis() + WIFI_TIMEOUT;
+    connection_status = WiFi.status();
+
+    while ((connection_status != WL_CONNECTED) && (millis() < timeout))
+    {
+      Serial.print(".");
+      delay(50);
+      connection_status = WiFi.status();
+    }
+    Serial.println();
+  }
+#else
   WiFi.mode(WIFI_STA);
   Serial.printf("%s '%s'", TXT_CONNECTING_TO, WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -72,6 +184,7 @@ wl_status_t startWiFi(int &wifiRSSI)
     connection_status = WiFi.status();
   }
   Serial.println();
+#endif
 
   if (connection_status == WL_CONNECTED)
   {
